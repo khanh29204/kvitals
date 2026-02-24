@@ -6,6 +6,7 @@ repo_name: yassine20011/kvitals
 
 theme:
   name: material
+  custom_dir: overrides
   palette:
     - scheme: slate
       primary: deep purple
