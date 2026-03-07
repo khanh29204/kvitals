@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import org.kde.plasma.plasmoid
 import org.kde.plasma.core as PlasmaCore
 import org.kde.plasma.components as PlasmaComponents
+import org.kde.plasma.plasma5support as Plasma5Support
 import org.kde.kirigami as Kirigami
 import org.kde.ksysguard.sensors as Sensors
 
@@ -19,6 +20,7 @@ PlasmoidItem {
     property bool showPower: Plasmoid.configuration.showPower
     property bool showNetwork: Plasmoid.configuration.showNetwork
     property string networkInterface: Plasmoid.configuration.networkInterface
+    property string batteryDevice: Plasmoid.configuration.batteryDevice
     property string displayMode: Plasmoid.configuration.displayMode
     property int iconSize: Plasmoid.configuration.iconSize
     property string cpuIcon: Plasmoid.configuration.cpuIcon
@@ -216,66 +218,151 @@ PlasmoidItem {
         updateRateLimit: root.updateInterval
     }
 
-    // Dynamic battery sensor discovery via SensorTreeModel
-    Sensors.SensorTreeModel {
-        id: sensorTree
+    // --- Dynamic battery sensor discovery ---
+
+    property string discoveredBatId: ""
+
+    property string batChargeSensorId: {
+        var base = (batteryDevice && batteryDevice !== "auto") ? batteryDevice : discoveredBatId;
+        return base ? ("power/" + base + "/chargePercentage") : "";
     }
 
-    property string batChargeSensorId: ""
-    property string batRateSensorId: ""
+    property string batRateSensorId: {
+        var base = (batteryDevice && batteryDevice !== "auto") ? batteryDevice : discoveredBatId;
+        return base ? ("power/" + base + "/chargeRate") : "";
+    }
+
+    // Stage 1: Silent probes
+    property var batteryCandidates: [
+        "battery_BAT0",
+        "battery_BAT1",
+        "battery_BAT2",
+        "battery_BATT",
+        "battery_BATT0"
+    ]
+    property var stage1Probes: []
+    property var batteryChoices: []
+    property bool showBatteryPicker: false
+    property bool showManualBatteryInput: false
+
+    Component.onCompleted: {
+        if (batteryDevice && batteryDevice !== "auto")
+            return;
+
+        for (var i = 0; i < batteryCandidates.length; i++) {
+            var pre = "power/" + batteryCandidates[i] + "/chargePercentage";
+            var code = 'import org.kde.ksysguard.sensors as Sensors; Sensors.Sensor { sensorId: "' + pre + '"; updateRateLimit: 0 }';
+            try {
+                var probe = Qt.createQmlObject(code, root, "probe_" + i);
+                stage1Probes.push({ candidate: batteryCandidates[i], probe: probe });
+            } catch(e) {
+            }
+        }
+    }
 
     Timer {
-        id: batDiscoveryTimer
-        interval: 1000; running: true; repeat: true
+        id: stage1Timer
+        interval: 500
+        repeat: true
+        running: (!batteryDevice || batteryDevice === "auto") && !discoveredBatId
         property int attempts: 0
         onTriggered: {
             attempts++;
-            root.discoverBatterySensors();
-            if ((root.batChargeSensorId && root.batRateSensorId) || attempts >= 5)
+            for (var i = 0; i < stage1Probes.length; i++) {
+                if (stage1Probes[i].probe && stage1Probes[i].probe.status === Sensors.Sensor.Ready) {
+                    persistDetectedBattery(stage1Probes[i].candidate);
+                    running = false;
+                    cleanupProbes();
+                    return;
+                }
+            }
+            if (attempts >= 6) { // 3 seconds timeout
                 running = false;
+                cleanupProbes();
+                // Stage 2: qdbus fallback
+                tryNextQdbus();
+            }
         }
     }
 
-    function discoverBatterySensors() {
-        var sensorIdRole = 257; // KSysGuard::SensorTreeModel::SensorId role
-
-        for (var i = 0; i < sensorTree.rowCount(); i++) {
-            var topIdx = sensorTree.index(i, 0);
-            var topName = sensorTree.data(topIdx, Qt.DisplayRole);
-            if (!topName || topName.toString().toLowerCase() !== "power")
-                continue;
-
-            for (var j = 0; j < sensorTree.rowCount(topIdx); j++) {
-                var batIdx = sensorTree.index(j, 0, topIdx);
-                var batName = sensorTree.data(batIdx, Qt.DisplayRole);
-                if (!batName || batName.toString().toLowerCase().indexOf("battery") < 0)
-                    continue;
-
-                for (var k = 0; k < sensorTree.rowCount(batIdx); k++) {
-                    var sensorIdx = sensorTree.index(k, 0, batIdx);
-                    var sensorId = sensorTree.data(sensorIdx, sensorIdRole);
-
-                    // Fallback: scan nearby roles if 257 doesn't work
-                    if (!sensorId || sensorId.toString().indexOf("/") < 0) {
-                        for (var r = 256; r <= 270; r++) {
-                            var val = sensorTree.data(sensorIdx, r);
-                            if (val && val.toString().indexOf("/") >= 0) {
-                                sensorId = val;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (!sensorId) continue;
-                    var sid = sensorId.toString();
-                    if (sid.endsWith("/chargePercentage") && !batChargeSensorId)
-                        batChargeSensorId = sid;
-                    if (sid.endsWith("/chargeRate") && !batRateSensorId)
-                        batRateSensorId = sid;
-                }
-                if (batChargeSensorId && batRateSensorId) return;
-            }
+    function cleanupProbes() {
+        for (var i = 0; i < stage1Probes.length; i++) {
+            if (stage1Probes[i].probe)
+                stage1Probes[i].probe.destroy();
         }
+        stage1Probes = [];
+    }
+
+    function persistDetectedBattery(deviceId) {
+        discoveredBatId = deviceId;
+        if (typeof Plasmoid !== "undefined" && Plasmoid.configuration)
+            Plasmoid.configuration.batteryDevice = deviceId;
+    }
+
+    function extractBatteryIds(stdout) {
+        if (!stdout)
+            return [];
+        var matches = stdout.match(/power\/[^\/"\s]+\/chargePercentage/g);
+        if (!matches)
+            return [];
+
+        var ids = [];
+        for (var i = 0; i < matches.length; i++) {
+            var parts = matches[i].split("/");
+            if (parts.length < 3)
+                continue;
+            if (ids.indexOf(parts[1]) === -1)
+                ids.push(parts[1]);
+        }
+        return ids;
+    }
+
+    // Stage 2: qdbus fallback
+    property var qdbusVariants: ["qdbus", "qdbus6", "qdbus-qt6", "qdbus-qt5"]
+    property int qdbusIndex: 0
+
+    Plasma5Support.DataSource {
+        id: qdbusDetector
+        engine: "executable"
+        property bool active: false
+
+        onNewData: function(sourceName, data) {
+            if (!active) return;
+            active = false;
+            disconnectSource(sourceName);
+
+            if (data["exit code"] === 0) {
+                var ids = extractBatteryIds(data["stdout"] ? data["stdout"].toString() : "");
+                if (ids.length === 1) {
+                    persistDetectedBattery(ids[0]);
+                    return;
+                }
+                if (ids.length > 1) {
+                    batteryChoices = ids;
+                    showBatteryPicker = true;
+                    return;
+                }
+            }
+            tryNextQdbus();
+        }
+
+        function run(variant) {
+            var cmd = variant + " --literal org.kde.ksystemstats1" +
+                      " /org/kde/ksystemstats1" +
+                      " org.kde.ksystemstats1.allSensors";
+            active = true;
+            connectSource(cmd);
+        }
+    }
+
+    function tryNextQdbus() {
+        if (qdbusIndex >= qdbusVariants.length) {
+            showManualBatteryInput = true;
+            return;
+        }
+        var variant = qdbusVariants[qdbusIndex];
+        qdbusIndex++;
+        qdbusDetector.run(variant);
     }
 
     Sensors.Sensor {

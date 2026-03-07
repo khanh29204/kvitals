@@ -28,6 +28,9 @@
         <entry name="networkInterface" type="String">
             <default>auto</default>
         </entry>
+        <entry name="batteryDevice" type="String">
+            <default>auto</default>
+        </entry>
         <entry name="displayMode" type="String">
             <default>text</default>
         </entry>

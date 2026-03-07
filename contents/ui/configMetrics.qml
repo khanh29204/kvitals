@@ -16,9 +16,10 @@ KCM.SimpleKCM {
     property bool cfg_showPower
     property bool cfg_showNetwork
     property string cfg_networkInterface: "auto"
+    property string cfg_batteryDevice: "auto"
     property string cfg_metricOrder: "cpu,ram,temp,gpu,bat,pwr,net"
 
-    property var ifaceList: []
+    property var ifaceList: ["auto"]
 
     readonly property var allKeys: ["cpu", "ram", "temp", "gpu", "bat", "pwr", "net"]
 
@@ -74,6 +75,21 @@ KCM.SimpleKCM {
         keys.splice(toIndex, 0, item);
         cfg_metricOrder = keys.join(",");
     }
+
+    function trimmed(text) {
+        return (text || "").toString().trim();
+    }
+
+    function syncBatteryInput() {
+        if (!batteryInput)
+            return;
+        var desired = cfg_batteryDevice === "auto" ? "" : cfg_batteryDevice;
+        if (batteryInput.text !== desired)
+            batteryInput.text = desired;
+    }
+
+    onCfg_batteryDeviceChanged: syncBatteryInput()
+    Component.onCompleted: syncBatteryInput()
 
     Plasma5Support.DataSource {
         id: ifaceSource
@@ -154,6 +170,23 @@ KCM.SimpleKCM {
             onActivated: {
                 cfg_networkInterface = metricsPage.ifaceList[currentIndex];
             }
+        }
+
+        TextField {
+            id: batteryInput
+            Kirigami.FormData.label: i18n("Battery device:")
+            enabled: cfg_showBattery
+            placeholderText: i18n("Leave empty for auto (e.g. battery_BAT0)")
+            onTextEdited: {
+                var value = metricsPage.trimmed(text);
+                cfg_batteryDevice = value.length > 0 ? value : "auto";
+            }
+        }
+
+        Label {
+            text: i18n("Empty value uses automatic detection.")
+            opacity: 0.7
+            visible: cfg_showBattery
         }
     }
 }
