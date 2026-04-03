@@ -13,6 +13,7 @@ RowLayout {
     required property int effectiveFontSize
     required property string fontFamily
     required property int iconSize
+    required property color baseTextColor
 
 
     signal toggleExpanded()
@@ -32,11 +33,11 @@ RowLayout {
             Layout.fillHeight: true
 
             PlasmaComponents.Label {
-                visible: index > 0
+                visible: index > 0 && !modelData.hideSeparator
                 text: "|"
                 font.pixelSize: compactRow.effectiveFontSize
                 font.family: compactRow.fontFamily
-                color: Kirigami.Theme.textColor
+                color: compactRow.baseTextColor
                 opacity: 0.4
                 Layout.alignment: Qt.AlignVCenter
             }
@@ -55,16 +56,48 @@ RowLayout {
                 text: modelData.label
                 font.pixelSize: compactRow.effectiveFontSize
                 font.family: compactRow.fontFamily
-                color: Kirigami.Theme.textColor
+                color: compactRow.baseTextColor
                 Layout.alignment: Qt.AlignVCenter
             }
 
             PlasmaComponents.Label {
-                text: modelData.value
+                text: modelData.value || ""
+                visible: !modelData.segments
                 font.pixelSize: compactRow.effectiveFontSize
                 font.family: compactRow.fontFamily
-                color: Kirigami.Theme.textColor
+                color: modelData.color
                 Layout.alignment: Qt.AlignVCenter
+            }
+
+            Row {
+                visible: !!modelData.segments
+                spacing: 2
+                Layout.alignment: Qt.AlignVCenter
+
+                Repeater {
+                    model: modelData.segments || []
+                    delegate: Row {
+                        required property var modelData
+                        required property int index
+                        spacing: 2
+
+                        PlasmaComponents.Label {
+                            visible: index > 0
+                            text: "·"
+                            font.pixelSize: compactRow.effectiveFontSize
+                            font.family: compactRow.fontFamily
+                            color: compactRow.baseTextColor
+                            opacity: 0.5
+                        }
+
+                        PlasmaComponents.Label {
+                            text: modelData.value
+                            font.pixelSize: compactRow.effectiveFontSize
+                            font.family: compactRow.fontFamily
+                            color: modelData.color
+                        }
+                    }
+                }
             }
         }
     }
