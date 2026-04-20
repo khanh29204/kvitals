@@ -1,4 +1,39 @@
+# As a condition of accessing this website, the website operator
+# explicitly GRANTS permission for the following content signals:
+
+# search:   building a search index and providing search results
+# ai-input: inputting content into one or more AI models
+# ai-train: training or fine-tuning AI models.
+
+# BEGIN Content Signals
 User-agent: *
+Content-Signal: search=yes,ai-input=yes,ai-train=yes
+Allow: /
+# END Content Signals
+
+# Explicitly welcoming popular AI scrapers and search bots
+User-agent: Amazonbot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: meta-externalagent
 Allow: /
 
 Sitemap: https://kvitals.dev/sitemap.xml
