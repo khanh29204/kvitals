@@ -16,7 +16,7 @@ Item {
 
     readonly property string batValue: {
         if (isNaN(batNumericValue)) return "";
-        return String(Math.round(batNumericValue)).padStart(3, "\u2007") + "%";
+        return Math.round(batNumericValue) + "%";
     }
 
     readonly property string powerValue: {

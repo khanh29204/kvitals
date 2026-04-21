@@ -34,7 +34,7 @@ Item {
     readonly property string gpuValue: {
         if (isNaN(gpuUsageNumber))
             return "";
-        return String(Math.round(gpuUsageNumber)).padStart(3, "\u2007") + "%";
+        return Math.round(gpuUsageNumber) + "%";
     }
 
     readonly property string gpuRamValue: {
@@ -46,7 +46,7 @@ Item {
     readonly property string gpuTempValue: {
         if (isNaN(gpuTempNumber))
             return "";
-        return String(Math.round(gpuTempNumber)).padStart(3, "\u2007") + "°C";
+        return Math.round(gpuTempNumber) + "°C";
     }
 
     readonly property string gpuDisplayValue: {

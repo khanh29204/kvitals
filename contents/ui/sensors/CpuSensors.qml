@@ -15,7 +15,7 @@ Item {
     readonly property string cpuValue: {
         if (isNaN(cpuNumericValue))
             return "...";
-        return String(Math.round(cpuNumericValue)).padStart(3, "\u2007") + "%";
+        return Math.round(cpuNumericValue) + "%";
     }
 
     Sensors.Sensor {
