@@ -25,6 +25,10 @@
         <entry name="showNetwork" type="Bool">
             <default>true</default>
         </entry>
+        <entry name="showUptime" type="Bool">
+            <default>true</default>
+        </entry>
+        
         <entry name="networkInterface" type="String">
             <default>auto</default>
         </entry>
@@ -57,6 +61,9 @@
         </entry>
         <entry name="networkIcon" type="String">
             <default>network-wireless</default>
+        </entry>
+        <entry name="uptimeIcon" type="String">
+            <default>clock</default>
         </entry>
         <entry name="fontFamily" type="String">
             <default>monospace</default>

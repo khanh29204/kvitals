@@ -15,6 +15,7 @@ KCM.SimpleKCM {
     property string cfg_batteryIcon: "battery-good"
     property string cfg_powerIcon: "battery-charging-60"
     property string cfg_networkIcon: "network-wireless"
+    property string cfg_uptimeIcon: "clock"
 
     KIconThemes.IconDialog {
         id: cpuIconDialog
@@ -44,8 +45,18 @@ KCM.SimpleKCM {
         id: networkIconDialog
         onIconNameChanged: if (iconName) cfg_networkIcon = iconName
     }
+    KIconThemes.IconDialog {
+        id: uptimeIconDialog
+        onIconNameChanged: if (iconName) cfg_uptimeIcon = iconName
+    }
 
     Kirigami.FormLayout {
+        RowLayout {
+            Kirigami.FormData.label: i18n("Uptime:")
+            Kirigami.Icon { source: cfg_uptimeIcon; isMask: true; Layout.preferredWidth: 22; Layout.preferredHeight: 22 }
+            Button { text: i18n("Change..."); onClicked: uptimeIconDialog.open(); icon.name: "document-edit" }
+        }
+        
 
         RowLayout {
             Kirigami.FormData.label: i18n("CPU:")
@@ -101,6 +112,7 @@ KCM.SimpleKCM {
                 cfg_batteryIcon = "battery-good";
                 cfg_powerIcon = "battery-charging-60";
                 cfg_networkIcon = "network-wireless";
+                cfg_uptimeIcon = "clock";
             }
         }
     }

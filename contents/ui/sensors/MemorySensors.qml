@@ -16,7 +16,8 @@ Item {
     readonly property string ramValue: {
         if (isNaN(ramPercentage))
             return "...";
-        return Utils.formatBytes(ramUsedSensor.value) + "/" + Utils.formatBytes(ramTotalSensor.value) + "G";
+        // Sử dụng Math.round() để làm tròn số nguyên hoặc .toFixed(1) nếu muốn 1 chữ số thập phân
+        return Math.round(ramPercentage) + "%";
     }
 
     Sensors.Sensor {

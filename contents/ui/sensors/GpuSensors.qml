@@ -53,8 +53,8 @@ Item {
         var parts = [];
         if (gpuValue)
             parts.push(gpuValue);
-        if (gpuRamValue)
-            parts.push(gpuRamValue);
+        // if (gpuRamValue)
+        //     parts.push(gpuRamValue);
         if (gpuTempValue)
             parts.push(gpuTempValue);
         return parts.join(" ");
@@ -62,7 +62,7 @@ Item {
 
     readonly property bool hasGpuData: gpuDisplayValue.length > 0
     readonly property bool hasGpuUsageData: gpuValue.length > 0
-    readonly property bool hasGpuVramData: gpuRamValue.length > 0
+    // readonly property bool hasGpuVramData: gpuRamValue.length > 0
     readonly property bool hasGpuTempData: gpuTempValue.length > 0
 
     // --- Usage sensors ---

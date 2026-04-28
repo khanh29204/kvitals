@@ -19,6 +19,8 @@ PlasmoidItem {
     property bool showBattery: Plasmoid.configuration.showBattery
     property bool showPower: Plasmoid.configuration.showPower
     property bool showNetwork: Plasmoid.configuration.showNetwork
+    property bool showUptime: Plasmoid.configuration.showUptime
+
     property string networkInterface: Plasmoid.configuration.networkInterface
     property string batteryDevice: Plasmoid.configuration.batteryDevice
     property string displayMode: Plasmoid.configuration.displayMode
@@ -30,6 +32,8 @@ PlasmoidItem {
     property string batteryIcon: Plasmoid.configuration.batteryIcon
     property string powerIcon: Plasmoid.configuration.powerIcon
     property string networkIcon: Plasmoid.configuration.networkIcon
+    property string uptimeIcon: Plasmoid.configuration.uptimeIcon
+
     property string fontFamily: Plasmoid.configuration.fontFamily
     property int fontSize: Plasmoid.configuration.fontSize
     property int effectiveFontSize: fontSize > 0 ? fontSize : Kirigami.Theme.smallFont.pixelSize
@@ -98,7 +102,7 @@ PlasmoidItem {
         ? Utils.resolveColor(battery.batNumericValue, batteryWarningThreshold, batteryCriticalThreshold,
                              warningColor, criticalColor, baseTextColor, true)
         : baseTextColor
-
+        
     // --- Sensor components ---
 
     CpuSensors {
@@ -131,6 +135,11 @@ PlasmoidItem {
         id: network
         updateInterval: root.updateInterval
         networkInterface: root.networkInterface
+    }
+
+    UptimeSensors {
+        id: uptime
+        updateInterval: root.updateInterval
     }
 
     // --- Representations ---
@@ -168,6 +177,9 @@ PlasmoidItem {
                                  color: root.baseTextColor });
                 else if (key === "net" && root.showNetwork)
                     items.push({ icon: root.networkIcon, label: "NET:", value: "↓" + network.netDownValue + " ↑" + network.netUpValue,
+                                 color: root.baseTextColor });
+                else if (key === "uptime" && uptime.uptimeValue) 
+                    items.push({ icon: root.uptimeIcon, label: "UP:", value: uptime.uptimeValue, 
                                  color: root.baseTextColor });
             }
             return items;
@@ -214,6 +226,10 @@ PlasmoidItem {
                     items.push({ label: "Network ↓", value: network.netDownValue, color: root.baseTextColor });
                     items.push({ label: "Network ↑", value: network.netUpValue, color: root.baseTextColor });
                 }
+                else if (key === "uptime" && uptime.uptimeValue) {
+                    parts.push("Uptime: " + uptime.uptimeValue);
+                }
+                    
             }
             return items;
         }
@@ -243,6 +259,8 @@ PlasmoidItem {
                 parts.push("PWR: " + battery.powerValue);
             else if (key === "net" && root.showNetwork)
                 parts.push("NET: ↓" + network.netDownValue + " ↑" + network.netUpValue);
+            else if (key === "uptime" && root.showUptime && uptime.uptimeValue)
+                parts.push("UPTIME: " + uptime.uptimeValue);
         }
         return parts.join("\n");
     }

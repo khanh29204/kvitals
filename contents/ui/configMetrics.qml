@@ -15,13 +15,14 @@ KCM.SimpleKCM {
     property bool cfg_showBattery
     property bool cfg_showPower
     property bool cfg_showNetwork
+    property bool cfg_showUptime
     property string cfg_networkInterface: "auto"
     property string cfg_batteryDevice: "auto"
-    property string cfg_metricOrder: "cpu,ram,temp,gpu,bat,pwr,net"
+    property string cfg_metricOrder: "cpu,ram,temp,gpu,bat,pwr,net,uptime"
 
     property var ifaceList: ["auto"]
 
-    readonly property var allKeys: ["cpu", "ram", "temp", "gpu", "bat", "pwr", "net"]
+    readonly property var allKeys: ["cpu", "ram", "temp", "gpu", "bat", "pwr", "net", "uptime"]
 
     readonly property var metricLabels: ({
         "cpu":  i18n("CPU Usage"),
@@ -30,7 +31,8 @@ KCM.SimpleKCM {
         "gpu":  i18n("GPU Metrics"),
         "bat":  i18n("Battery Status"),
         "pwr":  i18n("Power Consumption"),
-        "net":  i18n("Network Speed")
+        "net":  i18n("Network Speed"),
+        "uptime": i18n("Uptime")
     })
 
     property var currentOrder: {
@@ -53,6 +55,7 @@ KCM.SimpleKCM {
             case "bat":  return cfg_showBattery;
             case "pwr":  return cfg_showPower;
             case "net":  return cfg_showNetwork;
+            case "uptime": return cfg_showUptime;
         }
         return false;
     }
@@ -66,6 +69,7 @@ KCM.SimpleKCM {
             case "bat":  cfg_showBattery = val; break;
             case "pwr":  cfg_showPower   = val; break;
             case "net":  cfg_showNetwork = val; break;
+            case "uptime": cfg_showUptime = val; break;
         }
     }
 
