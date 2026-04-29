@@ -20,6 +20,7 @@ PlasmoidItem {
     property bool showPower: Plasmoid.configuration.showPower
     property bool showNetwork: Plasmoid.configuration.showNetwork
     property bool showUptime: Plasmoid.configuration.showUptime
+    property bool showFan: Plasmoid.configuration.showFan
 
     property string networkInterface: Plasmoid.configuration.networkInterface
     property string batteryDevice: Plasmoid.configuration.batteryDevice
@@ -33,6 +34,7 @@ PlasmoidItem {
     property string powerIcon: Plasmoid.configuration.powerIcon
     property string networkIcon: Plasmoid.configuration.networkIcon
     property string uptimeIcon: Plasmoid.configuration.uptimeIcon
+    property string fanIcon: Plasmoid.configuration.fanIcon
 
     property string fontFamily: Plasmoid.configuration.fontFamily
     property int fontSize: Plasmoid.configuration.fontSize
@@ -41,7 +43,7 @@ PlasmoidItem {
     property bool useIcons: displayMode === "icons" || displayMode === "icons+text"
     property bool useText:  displayMode === "text"  || displayMode === "icons+text"
 
-    property string metricOrder: Plasmoid.configuration.metricOrder || "cpu,ram,temp,gpu,bat,pwr,net"
+    property string metricOrder: Plasmoid.configuration.metricOrder || "cpu,ram,temp,gpu,bat,pwr,net,uptime,fan"
     property var orderedKeys: metricOrder.split(",").map(function(k) { return k.trim(); })
 
     property int updateInterval: Plasmoid.configuration.updateInterval || 2000
@@ -102,6 +104,11 @@ PlasmoidItem {
         ? Utils.resolveColor(battery.batNumericValue, batteryWarningThreshold, batteryCriticalThreshold,
                              warningColor, criticalColor, baseTextColor, true)
         : baseTextColor
+
+    property color fanColor: enableThresholdColors
+        ? Utils.resolveColor(Math.max(fan.cpuFanRaw, fan.gpuFanRaw), 0, 0,
+                             warningColor, criticalColor, baseTextColor, false)
+        : baseTextColor
         
     // --- Sensor components ---
 
@@ -139,6 +146,11 @@ PlasmoidItem {
 
     UptimeSensors {
         id: uptime
+        updateInterval: root.updateInterval
+    }
+
+    FanSensors {
+        id: fan
         updateInterval: root.updateInterval
     }
 
@@ -180,6 +192,9 @@ PlasmoidItem {
                                  color: root.baseTextColor });
                 else if (key === "uptime" && uptime.uptimeValue) 
                     items.push({ icon: root.uptimeIcon, label: "UP:", value: uptime.uptimeValue, 
+                                 color: root.baseTextColor });
+                else if (key === "fan" && root.showFan) 
+                    items.push({ icon: root.fanIcon, label: "FAN:", value: fan.cpuFanValue + "/" + fan.gpuFanValue,
                                  color: root.baseTextColor });
             }
             return items;
@@ -227,8 +242,12 @@ PlasmoidItem {
                     items.push({ label: "Network ↑", value: network.netUpValue, color: root.baseTextColor });
                 }
                 else if (key === "uptime" && uptime.uptimeValue) {
-                    parts.push("Uptime: " + uptime.uptimeValue);
+                    items.push("Uptime: " + uptime.uptimeValue);
                 }
+                else if (key === "fan" && root.showFan) {
+                    items.push({ label: "CPU Fan", value: fan.cpuFanValue, color: root.baseTextColor });
+                    items.push({ label: "GPU Fan", value: fan.gpuFanValue, color: root.baseTextColor });
+                }    
                     
             }
             return items;
@@ -261,6 +280,8 @@ PlasmoidItem {
                 parts.push("NET: ↓" + network.netDownValue + " ↑" + network.netUpValue);
             else if (key === "uptime" && root.showUptime && uptime.uptimeValue)
                 parts.push("UPTIME: " + uptime.uptimeValue);
+            else if (key === "fan" && root.showFan)
+                parts.push("FAN: " + fan.cpuFanValue + " / " + fan.gpuFanValue);
         }
         return parts.join("\n");
     }

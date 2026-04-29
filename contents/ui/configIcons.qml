@@ -16,6 +16,7 @@ KCM.SimpleKCM {
     property string cfg_powerIcon: "battery-charging-60"
     property string cfg_networkIcon: "network-wireless"
     property string cfg_uptimeIcon: "clock"
+    property string cfg_fanIcon: "sensors-fan-symbolic"
 
     KIconThemes.IconDialog {
         id: cpuIconDialog
@@ -49,15 +50,24 @@ KCM.SimpleKCM {
         id: uptimeIconDialog
         onIconNameChanged: if (iconName) cfg_uptimeIcon = iconName
     }
+    KIconThemes.IconDialog {
+        id: fanIconDialog
+        onIconNameChanged: if (iconName) cfg_fanIcon = iconName
+    }
 
     Kirigami.FormLayout {
+        RowLayout {
+            Kirigami.FormData.label: i18n("Fan Speed:")
+            Kirigami.Icon { source: cfg_fanIcon; isMask: true; Layout.preferredWidth: 22; Layout.preferredHeight: 22 }
+            Button { text: i18n("Change..."); onClicked: fanIconDialog.open(); icon.name: "document-edit" }
+        }
+        
         RowLayout {
             Kirigami.FormData.label: i18n("Uptime:")
             Kirigami.Icon { source: cfg_uptimeIcon; isMask: true; Layout.preferredWidth: 22; Layout.preferredHeight: 22 }
             Button { text: i18n("Change..."); onClicked: uptimeIconDialog.open(); icon.name: "document-edit" }
         }
         
-
         RowLayout {
             Kirigami.FormData.label: i18n("CPU:")
             Kirigami.Icon { source: cfg_cpuIcon; isMask: true; Layout.preferredWidth: 22; Layout.preferredHeight: 22 }
@@ -113,6 +123,7 @@ KCM.SimpleKCM {
                 cfg_powerIcon = "battery-charging-60";
                 cfg_networkIcon = "network-wireless";
                 cfg_uptimeIcon = "clock";
+                cfg_fanIcon = "sensors-fan-symbolic";
             }
         }
     }
