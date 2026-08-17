@@ -17,6 +17,7 @@ KCM.SimpleKCM {
     property bool cfg_showNetwork
     property bool cfg_showUptime
     property bool cfg_showFan
+    property bool cfg_showDisk
     
     property string cfg_networkInterface: "auto"
     property string cfg_batteryDevice: "auto"
@@ -24,7 +25,7 @@ KCM.SimpleKCM {
 
     property var ifaceList: ["auto"]
 
-    readonly property var allKeys: ["cpu", "ram", "temp", "gpu", "bat", "pwr", "net", "uptime", "fan"]
+    readonly property var allKeys: ["cpu", "ram", "temp", "gpu", "bat", "pwr", "net", "uptime", "fan", "disk"]
 
     readonly property var metricLabels: ({
         "cpu":  i18n("CPU Usage"),
@@ -35,7 +36,8 @@ KCM.SimpleKCM {
         "pwr":  i18n("Power Consumption"),
         "net":  i18n("Network Speed"),
         "uptime": i18n("Uptime"),
-        "fan": i18n("Fan Speed")
+        "fan": i18n("Fan Speed"),
+        "disk": i18n("Disk Space (/ and /home)")
     })
 
     property var currentOrder: {
@@ -60,6 +62,7 @@ KCM.SimpleKCM {
             case "net":  return cfg_showNetwork;
             case "uptime": return cfg_showUptime;
             case "fan": return cfg_showFan;
+            case "disk": return cfg_showDisk;
         }
         return false;
     }
@@ -75,6 +78,7 @@ KCM.SimpleKCM {
             case "net":  cfg_showNetwork = val; break;
             case "uptime": cfg_showUptime = val; break;
             case "fan": cfg_showFan = val; break;
+            case "disk": cfg_showDisk = val; break;
         }
     }
 

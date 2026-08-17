@@ -17,6 +17,7 @@ KCM.SimpleKCM {
     property string cfg_networkIcon: "network-wireless"
     property string cfg_uptimeIcon: "clock"
     property string cfg_fanIcon: "sensors-fan-symbolic"
+    property string cfg_diskIcon: "drive-harddisk"
 
     KIconThemes.IconDialog {
         id: cpuIconDialog
@@ -54,6 +55,10 @@ KCM.SimpleKCM {
         id: fanIconDialog
         onIconNameChanged: if (iconName) cfg_fanIcon = iconName
     }
+    KIconThemes.IconDialog {
+        id: diskIconDialog
+        onIconNameChanged: if (iconName) cfg_diskIcon = iconName
+    }
 
     Kirigami.FormLayout {
         RowLayout {
@@ -61,7 +66,13 @@ KCM.SimpleKCM {
             Kirigami.Icon { source: cfg_fanIcon; isMask: true; Layout.preferredWidth: 22; Layout.preferredHeight: 22 }
             Button { text: i18n("Change..."); onClicked: fanIconDialog.open(); icon.name: "document-edit" }
         }
-        
+
+        RowLayout {
+            Kirigami.FormData.label: i18n("Disk Space:")
+            Kirigami.Icon { source: cfg_diskIcon; isMask: true; Layout.preferredWidth: 22; Layout.preferredHeight: 22 }
+            Button { text: i18n("Change..."); onClicked: diskIconDialog.open(); icon.name: "document-edit" }
+        }
+
         RowLayout {
             Kirigami.FormData.label: i18n("Uptime:")
             Kirigami.Icon { source: cfg_uptimeIcon; isMask: true; Layout.preferredWidth: 22; Layout.preferredHeight: 22 }
@@ -124,6 +135,7 @@ KCM.SimpleKCM {
                 cfg_networkIcon = "network-wireless";
                 cfg_uptimeIcon = "clock";
                 cfg_fanIcon = "sensors-fan-symbolic";
+                cfg_diskIcon = "drive-harddisk";
             }
         }
     }

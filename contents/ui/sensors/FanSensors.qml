@@ -8,17 +8,18 @@ Item {
     
     property real cpuFanRaw: 0
     property real gpuFanRaw: 0
-    readonly property real maxRpm: 6122
+    readonly property real maxRpmCpu: 5172
+    readonly property real maxRpmGpu: 5454
     
     readonly property string cpuFanValue: {
         if (cpuFanRaw <= 0) return "0%";
-        let percentage = Math.min(Math.round((cpuFanRaw / maxRpm) * 100), 100);
+        let percentage = Math.min(Math.round((cpuFanRaw / maxRpmCpu) * 100), 100);
         return percentage + "%";
     }
     
     readonly property string gpuFanValue: {
         if (gpuFanRaw <= 0) return "0%";
-        let percentage = Math.min(Math.round((gpuFanRaw / maxRpm) * 100), 100);
+        let percentage = Math.min(Math.round((gpuFanRaw / maxRpmGpu) * 100), 100);
         return percentage + "%";
     }
 

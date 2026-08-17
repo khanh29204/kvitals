@@ -10,6 +10,18 @@ QtObject {
         return gb.toFixed(1);
     }
 
+    // Free-space style: "820M", "1.4G", "1.2T"
+    function formatFree(bytes) {
+        if (typeof bytes !== "number" || isNaN(bytes) || bytes < 0)
+            return "?";
+        var mb = bytes / (1024 * 1024);
+        if (mb >= 1024 * 1024)
+            return (mb / (1024 * 1024)).toFixed(1) + "T";
+        if (mb >= 1024)
+            return (mb / 1024).toFixed(1) + "G";
+        return Math.round(mb) + "M";
+    }
+
     function formatRate(bytesPerSec) {
         if (typeof bytesPerSec !== "number" || isNaN(bytesPerSec))
             return "...";

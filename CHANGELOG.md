@@ -2,6 +2,18 @@
 
 All notable changes to KVitals will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- **Disk Space Metric**: Free space + usage percentage for `/` and `/home`, shown as `DISK: 1.4G(98%)•3.2G(99%)`.
+- **btrfs Snapshot Exclusion**: When a helper script is installed (`scripts/setup-disk-helper.sh`), space pinned by btrfs snapshots (e.g. snapper backups) is excluded from the used figure, so the numbers reflect space that is actually reclaimable. Requires btrfs quota (`btrfs quota enable /`), which the setup script enables automatically. Without the helper, the widget falls back to plain `df` values — no sudo needed.
+- New config entries: `showDisk`, `diskIcon` (default `drive-harddisk`), `diskWarningThreshold` (80%), `diskCriticalThreshold` (95%) for threshold coloring.
+- `Utils.formatFree()` helper for free-space formatting (M/G/T suffixes).
+
+### Notes
+- The disk metric is appended to existing saved metric orders automatically (users upgrading keep their old order; `disk` is added at the end).
+- `scripts/kvitals-disk-usage.sh` caches results for 30s in `/run` to avoid spawning root processes on every refresh.
+
 ## [2.4.0] - 2026-04-01
 
 ### Added

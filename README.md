@@ -18,7 +18,7 @@ CPU: 26%  |  RAM: 8.8/39.0G  |  TEMP: 96°C  |  🔋BAT: 78%  |  PWR: +20W  |  N
 
 ## Features
 
-- **Live monitoring** — CPU usage, RAM, CPU temperature, GPU metrics (when available), battery status, power draw, network speed
+- **Live monitoring** — CPU usage, RAM, CPU temperature, GPU metrics (when available), battery status, power draw, network speed, disk space for `/` and `/home` (btrfs snapshot backups excluded)
 - **Display modes** — Text, Icons, or Icons + Text for the panel view
 - **Custom icons** — Pick any icon from your installed theme for each metric
 - **Font customization** — Choose any system font and size
@@ -127,6 +127,7 @@ kvitals/
             ├── GpuSensors.qml      # GPU usage, VRAM, temp
             ├── BatterySensors.qml  # Battery & power
             ├── NetworkSensors.qml  # Network speed
+            ├── DiskSensors.qml     # Disk space (/ and /home)
             └── Utils.qml           # Shared formatting helpers
 ```
 

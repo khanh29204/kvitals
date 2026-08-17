@@ -21,6 +21,7 @@ PlasmoidItem {
     property bool showNetwork: Plasmoid.configuration.showNetwork
     property bool showUptime: Plasmoid.configuration.showUptime
     property bool showFan: Plasmoid.configuration.showFan
+    property bool showDisk: Plasmoid.configuration.showDisk
 
     property string networkInterface: Plasmoid.configuration.networkInterface
     property string batteryDevice: Plasmoid.configuration.batteryDevice
@@ -35,6 +36,7 @@ PlasmoidItem {
     property string networkIcon: Plasmoid.configuration.networkIcon
     property string uptimeIcon: Plasmoid.configuration.uptimeIcon
     property string fanIcon: Plasmoid.configuration.fanIcon
+    property string diskIcon: Plasmoid.configuration.diskIcon
 
     property string fontFamily: Plasmoid.configuration.fontFamily
     property int fontSize: Plasmoid.configuration.fontSize
@@ -44,7 +46,19 @@ PlasmoidItem {
     property bool useText:  displayMode === "text"  || displayMode === "icons+text"
 
     property string metricOrder: Plasmoid.configuration.metricOrder || "cpu,ram,temp,gpu,bat,pwr,net,uptime,fan"
-    property var orderedKeys: metricOrder.split(",").map(function(k) { return k.trim(); })
+
+    // Ensure new metric keys (e.g. "disk") appear even with a saved order from older versions
+    readonly property var allMetricKeys: ["cpu", "ram", "temp", "gpu", "bat", "pwr", "net", "uptime", "fan", "disk"]
+
+    readonly property var orderedKeys: {
+        var keys = metricOrder.split(",").map(function(k) { return k.trim(); })
+                    .filter(function(k) { return k.length > 0; });
+        for (var j = 0; j < allMetricKeys.length; j++) {
+            if (keys.indexOf(allMetricKeys[j]) < 0)
+                keys.push(allMetricKeys[j]);
+        }
+        return keys;
+    }
 
     property int updateInterval: Plasmoid.configuration.updateInterval || 2000
 
@@ -68,6 +82,8 @@ PlasmoidItem {
     property int gpuTempCriticalThreshold: Plasmoid.configuration.gpuTempCriticalThreshold
     property int batteryWarningThreshold: Plasmoid.configuration.batteryWarningThreshold
     property int batteryCriticalThreshold: Plasmoid.configuration.batteryCriticalThreshold
+    property int diskWarningThreshold: Plasmoid.configuration.diskWarningThreshold
+    property int diskCriticalThreshold: Plasmoid.configuration.diskCriticalThreshold
 
     // --- Computed base text color ---
 
@@ -107,6 +123,13 @@ PlasmoidItem {
 
     property color fanColor: enableThresholdColors
         ? Utils.resolveColor(Math.max(fan.cpuFanRaw, fan.gpuFanRaw), 0, 0,
+                             warningColor, criticalColor, baseTextColor, false)
+        : baseTextColor
+
+    property color diskColor: enableThresholdColors
+        ? Utils.resolveColor(Math.max(isNaN(disk.rootUsedPct) ? 0 : disk.rootUsedPct,
+                                      isNaN(disk.homeUsedPct) ? 0 : disk.homeUsedPct),
+                             diskWarningThreshold, diskCriticalThreshold,
                              warningColor, criticalColor, baseTextColor, false)
         : baseTextColor
         
@@ -154,6 +177,11 @@ PlasmoidItem {
         updateInterval: root.updateInterval
     }
 
+    DiskSensors {
+        id: disk
+        updateInterval: root.updateInterval
+    }
+
     // --- Representations ---
 
     compactRepresentation: CompactView {
@@ -193,9 +221,18 @@ PlasmoidItem {
                 else if (key === "uptime" && uptime.uptimeValue) 
                     items.push({ icon: root.uptimeIcon, label: "UP:", value: uptime.uptimeValue, 
                                  color: root.baseTextColor });
-                else if (key === "fan" && root.showFan) 
+                else if (key === "fan" && root.showFan)
                     items.push({ icon: root.fanIcon, label: "FAN:", value: fan.cpuFanValue + "/" + fan.gpuFanValue,
                                  color: root.baseTextColor });
+                else if (key === "disk" && root.showDisk && disk.hasDiskData) {
+                    var diskSegs = [];
+                    if (disk.rootReady)
+                        diskSegs.push({ value: disk.rootDisplay, color: root.diskColor });
+                    if (disk.homeReady)
+                        diskSegs.push({ value: disk.homeDisplay, color: root.diskColor });
+                    items.push({ icon: root.diskIcon, label: "DISK:", segments: diskSegs,
+                                 color: root.diskColor });
+                }
             }
             return items;
         }
@@ -242,13 +279,18 @@ PlasmoidItem {
                     items.push({ label: "Network ↑", value: network.netUpValue, color: root.baseTextColor });
                 }
                 else if (key === "uptime" && uptime.uptimeValue) {
-                    items.push("Uptime: " + uptime.uptimeValue);
+                    items.push({ label: "Uptime", value: uptime.uptimeValue, color: root.baseTextColor });
                 }
                 else if (key === "fan" && root.showFan) {
                     items.push({ label: "CPU Fan", value: fan.cpuFanValue, color: root.baseTextColor });
                     items.push({ label: "GPU Fan", value: fan.gpuFanValue, color: root.baseTextColor });
-                }    
-                    
+                }
+                else if (key === "disk" && root.showDisk) {
+                    if (disk.rootReady)
+                        items.push({ label: "Disk /", value: disk.fullRootValue, color: root.diskColor });
+                    if (disk.homeReady)
+                        items.push({ label: "Disk /home", value: disk.fullHomeValue, color: root.diskColor });
+                }
             }
             return items;
         }
@@ -282,6 +324,8 @@ PlasmoidItem {
                 parts.push("UPTIME: " + uptime.uptimeValue);
             else if (key === "fan" && root.showFan)
                 parts.push("FAN: " + fan.cpuFanValue + " / " + fan.gpuFanValue);
+            else if (key === "disk" && root.showDisk && disk.hasDiskData)
+                parts.push("DISK: " + disk.displayValue);
         }
         return parts.join("\n");
     }

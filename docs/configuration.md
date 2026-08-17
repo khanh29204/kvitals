@@ -34,6 +34,7 @@ Right-click the widget → **Configure KVitals...** to open the settings dialog.
 | **Show battery status** | Display battery percentage | On |
 | **Show power consumption** | Display power draw in watts | On |
 | **Show network speed** | Display download/upload speeds | On |
+| **Show disk space** | Display free space + usage % for `/` and `/home` (btrfs snapshots excluded) | On |
 | **Network interface** | Select network interface (`auto` or manual) | auto |
 
 ### Network Interface
